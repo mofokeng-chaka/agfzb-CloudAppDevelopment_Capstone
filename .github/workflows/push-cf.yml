@@ -35,6 +35,9 @@ jobs:
         run: |
           ibmcloud login --apikey "$IBM_CLOUD_API" -r "$IBM_CLOUD_REGION" -g "$IBM_CLOUD_GROUP" -s "$IBM_CLOUD_SPACE"
         shell: bash
+      - name: Target Org and Space
+        run: ibmcloud target -o $IBM_CLOUD_GROUP -s $IBM_CLOUD_SPACE
+        shell: bash
       - name: Target CF
         run: ibmcloud target --cf-api https://api.$IBM_CLOUD_REGION.cf.cloud.ibm.com -r $IBM_CLOUD_REGION -s $IBM_CLOUD_SPACE
         shell: bash
