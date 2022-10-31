@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-# from .models import related models
-from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request
+from .models import DealerReview
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request, analyze_review_sentiments
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -107,33 +107,37 @@ def get_dealer_details(request, dealer_id):
         return render(request, 'djangoapp/dealer_details.html', context)
 
 # Create a `add_review` view to submit a review
-def add_review(request, dealer_id):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['psw']
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/post-review?blocking=true"
+def add_review(request):
+        
+    # username = request.POST['username']
+    # password = request.POST['psw']
+    context = {}
+    user = request.user
+    print(user)
+    if user is not None:
+        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/post-review?blocking=true"
 
-            review = dict()
-            review["time"] = datetime.utcnow().isoformat()
-            review["dealership"] = 20
-            review["review"] = "This is a great car dealer" 
-            review["car_make"] = "BMW"
-            review["car_model"] = "120i"
-            review["car_year"] = 2022
-            review["id"] = dealer_id
-            review["name"] = "Sekoai Mongo"
-            review["purchase"] = False
-            review["purchase_date"] = "02/16/2021"
+        review = dict()
+        # review["time"] = datetime.utcnow().isoformat()
+        review["dealership"] = 100
+        review["review"] = "Great service"
+        review["car_make"] = "BMW"
+        review["car_model"] = "M140i"
+        review["car_year"] = 2022
+        review["id"] = 3000
+        review["name"] = "Sekoai Mongo"
+        review["purchase"] = True
+        review["purchase_date"] = "01/11/2022"
+        review["sentiment"] = "positive"
+        # {"another":"field","car_make":"Audi","car_model":"Car","car_year":2021,"dealership":15,"id":1115,"name":"Chaka Mofokeng","purchase":false,"purchase_date":"02/16/2021","review":"Great service!"}
 
-            json_payload = dict()
-            json_payload["review"] = review
+        json_payload = dict()
+        json_payload["review"] = review
 
-            result = post_request(url, json_payload, dealerId=dealer_id)
-            print(result)
-            return result
-        else:
-            context['message'] = "Invalid username or password."
-            return render(request, 'onlinecourse/user_login_bootstrap.html', context)
+        result = post_request(url, json_payload)
+        context['dealer_details'] = result["response"]["result"]["result"]
+        return render(request, 'djangoapp/dealer_details.html', context)
+    else:
+        context['message'] = "Invalid username or password."
+        return render(request, 'djangoapp/index.html', context)
 
