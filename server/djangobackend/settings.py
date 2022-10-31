@@ -27,7 +27,7 @@ DEBUG = True
 
 APPEND_SLASH = True
 
-ALLOWED_HOSTS = ["localhost", "phoka-cars.eu-gb.cf.appdomain.cloud"]
+ALLOWED_HOSTS = ["localhost", "phoka-cars.eu-gb.cf.appdomain.cloud", "dealership-7d5497448b-zwlcq"]
 
 
 # Application definition
