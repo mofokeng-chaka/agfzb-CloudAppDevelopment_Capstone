@@ -2,11 +2,11 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-from .models import DealerReview, CarDealer
-from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request, analyze_review_sentiments
+from .models import DealerReview, CarDealer, CarModel
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request, get_dealer_by_id_from_cf
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
-from datetime import datetime
+from datetime import date
 import logging
 import json
 
@@ -108,36 +108,48 @@ def get_dealer_details(request, dealer_id):
         return render(request, 'djangoapp/dealer_details.html', context)
 
 # Create a `add_review` view to submit a review
-def add_review(request):
+def add_review(request, dealer_id):
         
     # username = request.POST['username']
     # password = request.POST['psw']
     context = {}
     user = request.user
-    print(user)
-    if user is not None:
-        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/post-review?blocking=true"
+    if request.method == "GET":
+        cars = []
+        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/get-review?blocking=true"
+        # Get dealers from the URL
+        dealerships = get_dealer_reviews_from_cf(url, dealer_id)
+        for dealership in dealerships:
+            car = {
+                "id": dealership.id,
+                "name": dealership.name,
+                "make": dealership.car_make,
+                "year": dealership.car_year
+            }
+            cars.append(car)
+        context["cars"] = cars
+        context["dealer_id"] = dealer_id
+        dealer_url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/get-dealership?blocking=true"
+        dealer = get_dealer_by_id_from_cf(dealer_url, dealer_id)
+        context["dealer_full_name"] = dealer[0].full_name
+
+        return render(request, 'djangoapp/add_review.html', context)
+    if request.method == "POST":
+        if user is not None:
+            url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/post-review?blocking=true"
 
         review = dict()
-        # review["time"] = datetime.utcnow().isoformat()
-        review["dealership"] = 100
-        review["review"] = "Great service"
-        review["car_make"] = "BMW"
-        review["car_model"] = "M140i"
-        review["car_year"] = 2022
-        review["id"] = 3000
-        review["name"] = "Sekoai Mongo"
-        review["purchase"] = True
-        review["purchase_date"] = "01/11/2022"
-        review["sentiment"] = "positive"
-        # {"another":"field","car_make":"Audi","car_model":"Car","car_year":2021,"dealership":15,"id":1115,"name":"Chaka Mofokeng","purchase":false,"purchase_date":"02/16/2021","review":"Great service!"}
+        review["time"] = datetime.utcnow().isoformat()
+        review["review"] = request.POST["review"]
+        review["purchase"] = request.POST["purchase"]
+        review["purchase_date"] = request.POST["purchase_date"]
 
         json_payload = dict()
         json_payload["review"] = review
 
         result = post_request(url, json_payload)
-        context['dealer_details'] = result["response"]["result"]["result"]
-        return render(request, 'djangoapp/dealer_details.html', context)
+        dealer = result["response"]["result"]["result"]
+        return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
     else:
         context['message'] = "Invalid username or password."
         return render(request, 'djangoapp/index.html', context)

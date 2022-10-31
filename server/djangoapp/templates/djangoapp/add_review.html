@@ -8,38 +8,41 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.js"></script>
-
 </head>
     <body>
     <!--Add review form here -->
-    <form action="{% url 'djangoapp:add_review' %}" method="post">
+    <form action="{% url 'djangoapp:add_review' dealer_id %}" method="post">
         <div class="container"> <!--Style root div with .container class -->
             {% csrf_token %}
             <h1>Add Review</h1>
             <hr>
             <div class="form-group"> <!--Style second div with .form-group class -->
-                <label for="name"><b>Name</b></label>
-                <input type="text" class="form-control" placeholder="Enter Name: " name="name" required> <!--Style input with .form-control class -->
-                <label for="dealership"><b>Dealership</b></label>
-                <input type="number" class="form-control" name="dealership" quantity="dealership" min="1" required> <!--Style input with .form-control class -->
-                <label for="review"><b>Review</b></label>
-                <input type="text" class="form-control" placeholder="Enter Review: " name="review" required> <!--Style input with .form-control class -->
-                <label for="purchase"><b>Purchase</b></label>
-                <input type="checkbox" class="form-control" name="purchase" required> <!--Style input with .form-control class -->
-                <label for="purchase_date"><b>Purchase Date</b></label>
-                <input type="date" class="form-control" name="purchase_date" required> <!--Style input with .form-control class -->
-                <label for="car_make"><b>Car Make</b></label>
-                <input type="text" class="form-control" placeholder="Enter Car Make: " name="car_make" required> <!--Style input with .form-control class -->
-                <label for="car_model"><b>Car Model</b></label>
-                <input type="text" class="form-control" placeholder="Enter Car Model: " name="car_model" required> <!--Style input with .form-control class -->
-                <label for="car_year"><b>Year</b></label>
-                <input type="year" class="form-control" name="car_year" required> <!--Style input with .form-control class -->
+                <div>
+                    <label for="review"><b>Enter the review content</b></label>
+                    <textarea class="form-control" id="review" name="review" rows="2" required></textarea> <!--Style input with .form-control class -->
+                </div>
+                <div>
+                    <input class="form-check-input" type="checkbox" name="purchase" id="purchase"> <!--Style input with .form-control class -->
+                    <label for="purchase"><b>Has purchased car from {{  v }} (select car information below)</b></label>
+                </div>
+                <div>
+                    <label for="car"><b>Select your car (model-make-year)</b></label>
+                    <select name="car" id="car" class="form-select" required>
+                        {% for car in cars %}
+                            <option selected value={{car.id}}>{{car.name}}-{{car.make}}-{{ car.year|date:"Y" }}</option>
+                        {% endfor %}
+                    </select> <!--Style input with .form-control class -->
+                </div>
+                <div>
+                    <label for="purchase_date"><b>Select Your Purchase Date</b></label>
+                    <input class="form-control" type="text" name="purchase_date" id="purchase_date">  <!--Style input with .form-control class -->
+                </div>
                 {% if message %}
                 <div class="alert alert-warning"> <!--Style the message paragraph with .alert and .alert-warning class -->
                     {{ message }}
                 </div>
                 {% endif %}
-                <button class="btn btn-primary" type="submit">Add review</button> <!--Style button with .btn and .btn-primary class -->
+                <button class="btn btn-primary" type="submit">Submit</button> <!--Style button with .btn and .btn-primary class -->
             </div>
         </div>
     </form>

@@ -84,15 +84,16 @@ def get_dealer_reviews_from_cf(url, dealer_id):
     try:
         json_result = get_request(url, dealerId=dealer_id)
 
-        # Get its content in `response` object
-        dealer_doc = json_result["response"]["result"]["result"][0]
-        # Create a DealerReview object with values in `doc` object
-        sentiment = analyze_review_sentiments(dealer_doc["review"])
-        dealer_obj = DealerReview(dealership=dealer_doc["dealership"], name=dealer_doc["name"], purchase=dealer_doc["purchase"],
-                                    id=dealer_doc["id"], review=dealer_doc["review"], purchase_date=dealer_doc["purchase_date"],
-                                    car_make=dealer_doc["car_make"], car_model=dealer_doc["car_model"], 
-                                    car_year=dealer_doc["car_year"], sentiment=sentiment)
-        return dealer_obj
+        # For each dealer object
+        for dealer_doc in json_result["response"]["result"]["result"]:
+            # Create a DealerReview object with values in `doc` object
+            sentiment = analyze_review_sentiments(dealer_doc["review"])
+            dealer_obj = DealerReview(dealership=dealer_doc["dealership"], name=dealer_doc["name"], purchase=dealer_doc["purchase"],
+                                        id=dealer_doc["id"], review=dealer_doc["review"], purchase_date=dealer_doc["purchase_date"],
+                                        car_make=dealer_doc["car_make"], car_model=dealer_doc["car_model"], 
+                                        car_year=dealer_doc["car_year"], sentiment=sentiment)
+            results.append(dealer_obj)
+        return results
     except requests.exceptions.HTTPError as e:
         print(e)
 
