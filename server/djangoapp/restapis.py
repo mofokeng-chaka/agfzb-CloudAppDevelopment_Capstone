@@ -18,7 +18,6 @@ def get_request(url, **kwargs):
         # Call get method of requests library with URL and parameters
         CF_USERNAME = os.environ.get('CF_USERNAME')
         CF_PASSWORD = os.environ.get('CF_PASSWORD')
-        print(CF_USERNAME)
         response = requests.post(url, headers={'Content-Type': 'application/json'}, params=kwargs, auth=HTTPBasicAuth(CF_USERNAME, CF_PASSWORD))
                                     
     except:
