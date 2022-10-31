@@ -38,6 +38,20 @@ def get_request(url, **kwargs):
 
 # Create a `post_request` to make HTTP POST requests
 # e.g., response = requests.post(url, params=kwargs, json=payload)
+def post_request(url, json_payload, **kwargs):
+    print(kwargs)
+    print("POST from {} ".format(url))
+    try:
+        # Call get method of requests library with URL and parameters
+        CF_USERNAME = os.environ.get('CF_USERNAME')
+        CF_PASSWORD = os.environ.get('CF_PASSWORD')
+        response = requests.post(url, headers={'Content-Type': 'application/json'}, params=kwargs, json=json_payload, auth=HTTPBasicAuth(CF_USERNAME, CF_PASSWORD))                                    
+    except:
+        # If any error occurs
+        print("Network exception occurred")
+    status_code = response.status_code
+    print("With status {} ".format(status_code))
+    return response.json()
 
 
 # Create a get_dealers_from_cf method to get dealers from a cloud function
