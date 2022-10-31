@@ -42,6 +42,21 @@
     </nav>
 
     <!--Add a dealer table here -->
+    <!-- Page content -->
+    {% if dealer_names %}
+    <div class="card" style="width: 30rem;">
+        <div class="card-header">
+            Dealers
+        </div>
+        {% for dealer in dealer_names %}
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">{{dealer}}</li>
+        </ul>
+        {% endfor %}
+      </div>
+    {% else %}
+        <p>No dealers are available.</p>
+    {% endif %}
 
     </body>
 

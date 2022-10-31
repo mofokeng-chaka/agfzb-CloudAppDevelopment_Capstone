@@ -12,6 +12,25 @@
     <!--Add a nav bar here -->
 
     <!-- Add reviews as cards -->
+    {% if dealer_details %}
+    <div class="container">
+        <div class="card-deck">
+            <div class="card" style="width: 36rem;">
+                <div class="card-body bg-light">
+                    <h5 class="card-title">
+                        {{ dealer_details.name }}, <span class="text-success">{{ dealer_details.dealership }}</span>
+                    </h5>
+                    <p class="card-text">ID: {{ dealer_details.id }}</p>
+                    <p class="card-text">Review: {{ dealer_details.review }}</p>
+                    <p class="card-text">Purchase Date: {{ dealer_details.purchase_date }}</p>
+                    <p class="card-text">Car Make: {{ dealer_details.car_make }}</p>
+                    <p class="card-text">Car Model: {{ dealer_details.car_model }}</p>
+                    <p class="card-text">Car Year: {{ dealer_details.car_year }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     </body>
 
