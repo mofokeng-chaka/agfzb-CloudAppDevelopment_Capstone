@@ -4,6 +4,9 @@ import os
 from .models import CarDealer, DealerReview
 from dotenv import load_dotenv
 from requests.auth import HTTPBasicAuth
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from ibm_watson.natural_language_understanding_v1 import Features, EntitiesOptions, KeywordsOptions
 
 # Load environment variables from .env file
 load_dotenv() 
@@ -18,11 +21,16 @@ def get_request(url, **kwargs):
         # Call get method of requests library with URL and parameters
         CF_USERNAME = os.environ.get('CF_USERNAME')
         CF_PASSWORD = os.environ.get('CF_PASSWORD')
-        response = requests.post(url, headers={'Content-Type': 'application/json'}, json=kwargs, auth=HTTPBasicAuth(CF_USERNAME, CF_PASSWORD))
-                                    
+        params = dict()
+        for key in kwargs:
+            params[key] = kwargs[key]
+
+        response = requests.post(url, headers={'Content-Type': 'application/json'}, json=params, auth=HTTPBasicAuth(CF_USERNAME, CF_PASSWORD))                                    
     except:
         # If any error occurs
         print("Network exception occurred")
+    if "api_key" in kwargs:
+        response =requests.get(url, headers={'Content-Type': 'application/json'}, json=params, auth=HTTPBasicAuth('apikey', kwargs["api_key"]))
     status_code = response.status_code
     print("With status {} ".format(status_code))
     return response.json()
@@ -65,10 +73,11 @@ def get_dealer_reviews_from_cf(url, dealer_id):
         # Get its content in `response` object
         dealer_doc = json_result["response"]["result"]["result"][0]
         # Create a DealerReview object with values in `doc` object
+        sentiment = analyze_review_sentiments(dealer_doc["review"])
         dealer_obj = DealerReview(dealership=dealer_doc["dealership"], name=dealer_doc["name"], purchase=dealer_doc["purchase"],
                                     id=dealer_doc["id"], review=dealer_doc["review"], purchase_date=dealer_doc["purchase_date"],
                                     car_make=dealer_doc["car_make"], car_model=dealer_doc["car_model"], 
-                                    car_year=dealer_doc["car_year"], sentiment='')
+                                    car_year=dealer_doc["car_year"], sentiment=sentiment)
         return dealer_obj
     except requests.exceptions.HTTPError as e:
         print(e)
@@ -100,6 +109,28 @@ def get_dealer_by_id_from_cf(url, dealer_id):
 # def analyze_review_sentiments(text):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
+def analyze_review_sentiments(text):
+    url = "https://api.eu-gb.natural-language-understanding.watson.cloud.ibm.com/instances/e8a6e6dc-3579-4fe3-8570-d6a450cc37a8"
+    api_key = os.environ.get('API_KEY')
+    authenticator = IAMAuthenticator(api_key)
+    natural_language_understanding = NaturalLanguageUnderstandingV1(
+        version='2022-04-07',
+        authenticator=authenticator
+    )
+
+    natural_language_understanding.set_service_url(url)
+
+    response = natural_language_understanding.analyze(
+        text=text,
+        features=Features(
+            entities=EntitiesOptions(emotion=True, sentiment=True, limit=2),
+            keywords=KeywordsOptions(emotion=True, sentiment=True,limit=2)
+        )
+    ).get_result() 
+    result = response["keywords"][0]
+    return result["sentiment"]["label"]
+
+
 
 
 
