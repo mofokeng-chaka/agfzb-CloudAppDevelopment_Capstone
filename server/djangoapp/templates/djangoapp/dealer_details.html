@@ -51,6 +51,7 @@
                     <h2 class="card-title">{{ dealer.purchase_date }}</h2>
                     <p class="card-text">{{ dealer.review }}</p>
                 </div>
+                <a class="btn btn-link" href="{% url 'djangoapp:add_review' dealer.id }">Review</a>
              </div>
             {% endfor %}
         </div>
