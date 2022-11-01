@@ -19,13 +19,13 @@ def get_request(url, **kwargs):
     print("GET from {} ".format(url))
     try:
         # Call get method of requests library with URL and parameters
-        CF_USERNAME = os.environ.get('CF_USERNAME')
-        CF_PASSWORD = os.environ.get('CF_PASSWORD')
+        # CF_USERNAME = os.environ.get('CF_USERNAME')
+        # CF_PASSWORD = os.environ.get('CF_PASSWORD')
         params = dict()
         for key in kwargs:
             params[key] = kwargs[key]
 
-        response = requests.post(url, headers={'Content-Type': 'application/json'}, json=params, auth=HTTPBasicAuth(CF_USERNAME, CF_PASSWORD))                                    
+        response = requests.get(url, headers={'Content-Type': 'application/json'}, json=params)                                    
     except:
         # If any error occurs
         print("Network exception occurred")
@@ -43,9 +43,9 @@ def post_request(url, json_payload, **kwargs):
     print("POST from {} ".format(url))
     try:
         # Call get method of requests library with URL and parameters
-        CF_USERNAME = os.environ.get('CF_USERNAME')
-        CF_PASSWORD = os.environ.get('CF_PASSWORD')
-        response = requests.post(url, headers={'Content-Type': 'application/json'}, params=kwargs, json=json_payload, auth=HTTPBasicAuth(CF_USERNAME, CF_PASSWORD))                                    
+        # CF_USERNAME = os.environ.get('CF_USERNAME')
+        # CF_PASSWORD = os.environ.get('CF_PASSWORD')
+        response = requests.post(url, headers={'Content-Type': 'application/json'}, params=kwargs, json=json_payload)                                    
     except:
         # If any error occurs
         print("Network exception occurred")
@@ -64,7 +64,7 @@ def get_dealers_from_cf(url, **kwargs):
     json_result = get_request(url)
     if json_result:
         # For each dealer object
-        for dealer in json_result["response"]["result"]["result"]:
+        for dealer in json_result["result"]:
             # Get its content in `doc` object
             dealer_doc = dealer["doc"]
             # Create a CarDealer object with values in `doc` object
@@ -83,9 +83,8 @@ def get_dealer_reviews_from_cf(url, dealer_id):
     # Call get_request with a URL parameter
     try:
         json_result = get_request(url, dealerId=dealer_id)
-
         # For each dealer object
-        for dealer_doc in json_result["response"]["result"]["result"]:
+        for dealer_doc in json_result["result"]:
             # Create a DealerReview object with values in `doc` object
             sentiment = analyze_review_sentiments(dealer_doc["review"])
             dealer_obj = DealerReview(dealership=dealer_doc["dealership"], name=dealer_doc["name"], purchase=dealer_doc["purchase"],
@@ -107,7 +106,7 @@ def get_dealer_by_id_from_cf(url, dealer_id):
     json_result = get_request(url, dealerId=dealer_id)
     if json_result:
         # For each dealer object
-        for dealer in json_result["response"]["result"]["result"]:
+        for dealer in json_result["result"]:
             # Get its content in `doc` object
             dealer_doc = dealer["doc"]
             # Create a CarDealer object with values in `doc` object

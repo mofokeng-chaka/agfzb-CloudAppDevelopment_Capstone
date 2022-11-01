@@ -8,6 +8,17 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.js"></script>
+    <script>
+        $("#purchase").on('change', function() {
+            if ($(this).is(':checked')) {
+                $(this).attr('value', 'true');
+            } else {
+                $(this).attr('value', 'false');
+            }
+        
+        $('#checkbox-value').text($('#checkbox1').val());
+        });
+    </script>
 </head>
     <body>
     <!--Add review form here -->
@@ -22,7 +33,7 @@
                     <textarea class="form-control" id="review" name="review" rows="2" required></textarea> <!--Style input with .form-control class -->
                 </div>
                 <div>
-                    <input class="form-check-input" type="checkbox" name="purchase" id="purchase"> <!--Style input with .form-control class -->
+                    <input class="form-check-input" type="checkbox" name="purchase" id="purchase" value="false"> <!--Style input with .form-control class -->
                     <label for="purchase"><b>Has purchased car from {{ dealer_full_name }} (select car information below)</b></label>
                 </div>
                 <div>

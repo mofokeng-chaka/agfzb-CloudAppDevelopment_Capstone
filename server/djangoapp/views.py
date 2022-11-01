@@ -6,7 +6,7 @@ from .models import DealerReview, CarDealer, CarModel
 from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request, get_dealer_by_id_from_cf
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
-from datetime import date
+from datetime import datetime, date
 import logging
 import json
 
@@ -83,7 +83,7 @@ def registration_request(request):
 def get_dealerships(request):
     context = {}
     if request.method == "GET":
-        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/get-dealership?blocking=true"
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/mofokeng.chk%40gmail.com_dev/dealership-package/get-dealership.json"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
@@ -98,7 +98,7 @@ def get_dealerships(request):
 def get_dealer_details(request, dealer_id):
     context = {}
     if request.method == "GET":
-        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/get-review?blocking=true"
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/mofokeng.chk%40gmail.com_dev/dealership-package/get-review.json"
         # Get dealers from the URL
         dealerships = get_dealer_reviews_from_cf(url, dealer_id)
         # Concat all dealer's short name
@@ -113,12 +113,13 @@ def add_review(request, dealer_id):
     # username = request.POST['username']
     # password = request.POST['psw']
     context = {}
+    url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/mofokeng.chk%40gmail.com_dev/dealership-package/post-review.json"
+    review_url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/mofokeng.chk%40gmail.com_dev/dealership-package/get-review.json"
     user = request.user
     if request.method == "GET":
         cars = []
-        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/get-review?blocking=true"
         # Get dealers from the URL
-        dealerships = get_dealer_reviews_from_cf(url, dealer_id)
+        dealerships = get_dealer_reviews_from_cf(review_url, dealer_id)
         for dealership in dealerships:
             car = {
                 "id": dealership.id,
@@ -129,28 +130,27 @@ def add_review(request, dealer_id):
             cars.append(car)
         context["cars"] = cars
         context["dealer_id"] = dealer_id
-        dealer_url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/get-dealership?blocking=true"
+        dealer_url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/mofokeng.chk%40gmail.com_dev/dealership-package/get-dealership.json"
         dealer = get_dealer_by_id_from_cf(dealer_url, dealer_id)
         context["dealer_full_name"] = dealer[0].full_name
 
         return render(request, 'djangoapp/add_review.html', context)
     if request.method == "POST":
         if user is not None:
-            url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/mofokeng.chk%40gmail.com_dev/actions/dealership-package/post-review?blocking=true"
+            review = dict()
+            review["time"] = datetime.utcnow().isoformat()
+            review["review"] = request.POST["review"]
+            review["purchase"] = request.POST["purchase"]
+            review["purchase_date"] = request.POST["purchase_date"]
 
-        review = dict()
-        review["time"] = datetime.utcnow().isoformat()
-        review["review"] = request.POST["review"]
-        review["purchase"] = request.POST["purchase"]
-        review["purchase_date"] = request.POST["purchase_date"]
+            json_payload = dict()
+            json_payload["review"] = review
 
-        json_payload = dict()
-        json_payload["review"] = review
-
-        result = post_request(url, json_payload)
-        dealer = result["response"]["result"]["result"]
-        return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
-    else:
-        context['message'] = "Invalid username or password."
-        return render(request, 'djangoapp/index.html', context)
+            result = post_request(url, json_payload)
+            dealer = result["result"]
+            print(dealer)
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
+        else:
+            context['message'] = "Invalid username or password."
+            return render(request, 'djangoapp/index.html', context)
 

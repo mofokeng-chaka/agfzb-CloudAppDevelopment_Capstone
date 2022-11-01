@@ -51,7 +51,13 @@
                     <h2 class="card-title">{{ dealer.purchase_date }}</h2>
                     <p class="card-text">{{ dealer.review }}</p>
                 </div>
-                <a class="btn btn-link" href="{% url 'djangoapp:add_review' dealer.id }">Review</a>
+                <form action="{% url 'djangoapp:add_review' dealer.id %}" method="get">
+                    {% csrf_token %}
+                    <div class="container"> <!--Style root div with .container class -->
+                        <div class="form-group"> <!--Style second div with .form-group class -->
+                            <button class="btn btn-primary" type="submit">Review</button> <!--Style button with .btn and .btn-primary class -->
+                        </div>
+                    </div>
              </div>
             {% endfor %}
         </div>

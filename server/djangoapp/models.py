@@ -48,7 +48,7 @@ class CarModel(models.Model):
         return "Name: " + self.name + "," + \
             "Make: " + self.make.name + "," + \
             "Type: " + self.car_type + "," + \
-            "Year: " + self.year
+            "Year: " + self.year.strftime("%Y")
 
             
 
