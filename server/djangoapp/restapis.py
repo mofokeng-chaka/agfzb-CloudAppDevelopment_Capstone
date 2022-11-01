@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import random
 from .models import CarDealer, DealerReview
 from dotenv import load_dotenv
 from requests.auth import HTTPBasicAuth
@@ -86,12 +87,21 @@ def get_dealer_reviews_from_cf(url, dealer_id):
         # For each dealer object
         for dealer_doc in json_result["result"]:
             # Create a DealerReview object with values in `doc` object
-            sentiment = analyze_review_sentiments(dealer_doc["review"])
-            dealer_obj = DealerReview(dealership=dealer_doc["dealership"], name=dealer_doc["name"], purchase=dealer_doc["purchase"],
-                                        id=dealer_doc["id"], review=dealer_doc["review"], purchase_date=dealer_doc["purchase_date"],
-                                        car_make=dealer_doc["car_make"], car_model=dealer_doc["car_model"], 
-                                        car_year=dealer_doc["car_year"], sentiment=sentiment)
-            results.append(dealer_obj)
+            if dealer_doc["purchase"] or dealer_doc["purchase"] == "on":
+
+                sentiment = analyze_review_sentiments(dealer_doc["review"])
+                dealer_obj = DealerReview(dealership=dealer_doc["dealership"], name=dealer_doc["name"], purchase=dealer_doc["purchase"],
+                                            id=dealer_doc["id"], review=dealer_doc["review"], purchase_date=dealer_doc["purchase_date"],
+                                            car_make=dealer_doc["car_make"], car_model=dealer_doc["car_model"], 
+                                            car_year=dealer_doc["car_year"], sentiment=sentiment)
+                results.append(dealer_obj)
+            else:
+                sentiment = random.choice(["positive", "neutral", "negative"])
+                dealer_obj = DealerReview(dealership=dealer_doc["dealership"], name=dealer_doc["name"], purchase=dealer_doc["purchase"],
+                                            id=dealer_doc["id"], review=dealer_doc["review"], purchase_date=None,
+                                            car_make=None, car_model=None, 
+                                            car_year=None, sentiment=sentiment)
+                results.append(dealer_obj)
         return results
     except requests.exceptions.HTTPError as e:
         print(e)
@@ -126,23 +136,27 @@ def get_dealer_by_id_from_cf(url, dealer_id):
 def analyze_review_sentiments(text):
     url = "https://api.eu-gb.natural-language-understanding.watson.cloud.ibm.com/instances/e8a6e6dc-3579-4fe3-8570-d6a450cc37a8"
     api_key = os.environ.get('API_KEY')
-    authenticator = IAMAuthenticator(api_key)
-    natural_language_understanding = NaturalLanguageUnderstandingV1(
-        version='2022-04-07',
-        authenticator=authenticator
-    )
-
-    natural_language_understanding.set_service_url(url)
-
-    response = natural_language_understanding.analyze(
-        text=text,
-        features=Features(
-            entities=EntitiesOptions(emotion=True, sentiment=True, limit=2),
-            keywords=KeywordsOptions(emotion=True, sentiment=True,limit=2)
+    if api_key:
+        authenticator = IAMAuthenticator(api_key)
+        natural_language_understanding = NaturalLanguageUnderstandingV1(
+            version='2022-04-07',
+            authenticator=authenticator
         )
-    ).get_result() 
-    result = response["keywords"][0]
-    return result["sentiment"]["label"]
+
+        natural_language_understanding.set_service_url(url)
+
+        response = natural_language_understanding.analyze(
+            text=text,
+            features=Features(
+                entities=EntitiesOptions(emotion=True, sentiment=True, limit=2),
+                keywords=KeywordsOptions(emotion=True, sentiment=True,limit=2)
+            )
+        ).get_result() 
+        result = response["keywords"][0]
+        return result["sentiment"]["label"]
+    else:
+        sentiment = random.choice(["positive", "neutral", "negative"])
+        return sentiment
 
 
 
