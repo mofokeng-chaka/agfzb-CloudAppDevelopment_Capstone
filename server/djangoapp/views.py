@@ -148,7 +148,6 @@ def add_review(request, dealer_id):
 
             result = post_request(url, json_payload)
             dealer = result["result"]
-            print(dealer)
             return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
         else:
             context['message'] = "Invalid username or password."
